@@ -1,0 +1,13 @@
+{
+  "name": "tanglemango",
+  "version": "1.0.0",
+  "description": "Allows getting data from arbitrary websites based on link structure",
+  "main": "main.js",
+  "author": "Nathan Manceaux-Panot",
+  "license": "MIT",
+  "dependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-preset-node6": "^11.0.0",
+    "jsdom": "^9.11.0"
+  }
+}
