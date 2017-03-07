@@ -1,74 +1,87 @@
 import Brick from './Brick';
 
 export default class Identity extends Brick {
-	constructor(type, value) {
+	constructor(selector, type, value) {
 		super();
 		
+		this.selector = selector;
 		this.type = type;
 		this.value = value;
 	}
 	
 	equals(other) {
-		return
-			other
+		return other
+			&& this.selector === other.selector
 			&& this.type === other.type
 			&& this.type.equals(this.value, other.value);
 	}
 	
 	matches(element) {
-		if (!this.type) return false;
 		if (!element) return false;
 		
-		return this.type.equals(this.type.get(element), this.value);
+		return element.matches(this.selector)
+			&& this.type.equals(this.type.valueFor(element), this.value);
 	}
 	
-	static get(element, vetoCallback) {
+	getMatchesIn(container) {
+		let candidates = container.querySelectorAll(this.selector);
+		candidates = arrayFromNodeList(candidates);
+		
+		return candidates.filter(candidate => this.matches(candidate));
+	}
+	
+	static getFor(element, domain, context = element.ownerDocument) {
+		let peers = context.querySelectorAll(domain.selector);
+		peers = arrayFromNodeList(peers);
+		
+		function checkPeers(candidateIdentity) {
+			for (let peer of peers) {
+				if (candidateIdentity.matches(peer) && !domain.checkPeer(peer, element)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		// Search for a valid identity
 		for (let identityType of IdentityType.types) {
-			let identityValue = identityType.get(element),
-				identity = new Identity(identityType, identityValue);
+			let identityValue = identityType.valueFor(element),
+				identity = new Identity(domain.selector, identityType, identityValue);
 			
-			if (!vetoCallback(identity)) continue;
+			if (!checkPeers(identity)) continue;
 			
 			return identity;
-		};
+		}
 		
 		return null;
 	}
 	
-	static getWithPeerCheck(element, peers, peerCheckCallback) {
-		return this.get(element, candidateIdentity => {
-			for (let peer of peers) {
-				if (candidateIdentity.matches(peer) && !peerCheckCallback(peer)) {
-					return false;
-				}
-			}
+	static getAllIn(container, domain, context = container) {
+		let candidates = container.querySelectorAll(domain.selector);
+		candidates = arrayFromNodeList(candidates);
 	
-			return true;
-		});
-	}
+		let result = [];
 	
-	// Common case shortcuts
-	static getForLink(element) {
-		return this.getWithPeerCheck(
-			element,
-			element.ownerDocument.getElementsByTagName('a'),
-			peer => (peer.href === element.href)
-		);
-	}
-
-	static getForImage(element) {
-		return this.getWithPeerCheck(
-			element,
-			element.ownerDocument.getElementsByTagName('img'),
-			peer => (peer.src === element.src)
-		);
+		for (let candidate of candidates) {
+			let candidateIdentity = Identity.getFor(candidate, domain, context);
+		
+			if (candidateIdentity === null) continue;
+			if (result.find(resultItem => resultItem.identity.equals(candidateIdentity))) continue;
+		
+			result.push({
+				element: candidate,
+				identity: candidateIdentity
+			});
+		}
+	
+		return result;
 	}
 }
 
 class IdentityType {
-	constructor(name, getMethod, equalsMethod) {
+	constructor(name, valueForMethod, equalsMethod) {
 		this.name = name;
-		this.get = getMethod;
+		this.valueFor = valueForMethod;
 		this.equals = equalsMethod || ((a, b) => a === b);
 	}
 };
@@ -81,3 +94,29 @@ IdentityType.types = [
 	new IdentityType('classname', e => e.getAttribute('class')),
 	new IdentityType('text', e => e.textContent)
 ];
+
+class IdentityDomain {
+	constructor(selector, checkPeerMethod) {
+		this.selector = selector;
+		this.checkPeer = checkPeerMethod;
+	}
+}
+
+IdentityDomain.domains = {
+	link: new IdentityDomain('a', ((a, b) => a.href === b.href)),
+	image: new IdentityDomain('img', ((a, b) => a.src === b.src))
+};
+
+function arrayFromNodeList(nodeList) {
+	// Circumvent jsdom performance issue with getting the length of a node list
+	let result = [],
+		currentIndex = 0;
+	
+	do {
+		result.push(nodeList[currentIndex]);
+	} while(nodeList[++currentIndex]);
+	
+	return result;
+}
+
+export let identityDomains = IdentityDomain.domains;

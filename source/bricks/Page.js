@@ -26,25 +26,9 @@ export default class Page extends Brick {
 		});
 	}
 	
-	async getLinksWithIdentities() {
-		let dom = await this.dom,
-			linkElements = dom.getElementsByTagName('a');
-		
-		let result = [];
-		
-		for (let linkElement of linkElements) {
-			let linkIdentity = Identity.getForLink(linkElement);
-			
-			if (linkIdentity === null) continue;
-			if (result.find(resultItem => resultItem.identity.equals(linkIdentity))) continue;
-			
-			result.push({
-				url: linkElement.href,
-				identity: linkIdentity
-			});
-		}
-		
-		return result;
+	async getElementsWithIdentities(domain) {
+		let dom = await this.dom;
+		return Identity.getAllIn(dom, domain);
 	}
 	
 	// Static
