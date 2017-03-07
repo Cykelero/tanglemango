@@ -15,26 +15,21 @@ export default class Chain extends Brick {
 	
 		let startPageLinks = await startPage.getLinksWithIdentities();
 		startPageLinks = startPageLinks.filter(link => {
-			return domainForUrl(link.element.href) === domainForUrl(startPage.url);
+			return domainForUrl(link.url) === domainForUrl(startPage.url);
 		});
 	
 		// Test each forward link
 		await Promise.all(startPageLinks.map(async function(forwardLink) {
-			let secondPage = new Page(forwardLink.element.href),
+			let secondPage = new Page(forwardLink.url),
 				secondPageLinks = await secondPage.getLinksWithIdentities();
 			
-			let backwardLink = secondPageLinks.find(backwardLink => {
-				return (backwardLink.element.href === startPage.url);
+			secondPageLinks.forEach(backwardLink => {
+				console.log(backwardLink.url);
+				if (backwardLink.url === startPage.url) {
+					// We have found a forward-backward identity pair
+					chains.push(new Chain(startPage, forwardLink.identity, backwardLink.identity));
+				}
 			});
-			
-			if (forwardLink.identity.typeName === 'rel') {
-				console.log(forwardLink, backwardLink);
-			}
-			
-			if (backwardLink) {
-				// Matching backward link found: chain found
-				chains.push(new Chain(startPage, forwardLink.identity, backwardLink.identity));
-			}
 		}));
 		
 		return chains;

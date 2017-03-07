@@ -1,13 +1,11 @@
 import Brick from './Brick';
-import PageLink from './PageLink';
+import Identity from './Identity';
 
 import jsdom from 'jsdom';	
 
 export default class Page extends Brick {
 	constructor(url) {
 		super();
-		
-		console.log(url);
 		
 		this.url = this.constructor.toCanonicalUrl(url);
 		this.dom = null;
@@ -17,9 +15,12 @@ export default class Page extends Brick {
 			jsdom.env({
 				url: this.url,
 				done: function(error, window) {
-					if (error) reject(error);
-					
-					resolve(window.document);
+					if (error) {
+						console.warn(`Error when retrieving \`${this.url}\`:`, error);
+						reject(error);
+					} else {
+						resolve(window.document);
+					}
 				}
 			})
 		});
@@ -32,21 +33,15 @@ export default class Page extends Brick {
 		let result = [];
 		
 		for (let linkElement of linkElements) {
-			let linkWithIdentity = new PageLink(this, linkElement),
-				linkIdentity = await linkWithIdentity.identity;
+			let linkIdentity = Identity.getForLink(linkElement);
 			
 			if (linkIdentity === null) continue;
+			if (result.find(resultItem => resultItem.identity.equals(linkIdentity))) continue;
 			
-			let hasEqualInResultArray = false;
-			
-			await Promise.all(result.map(async function(resultLink) {
-				let isEqual = await resultLink.equals(linkWithIdentity);
-				if (isEqual) hasEqualInResultArray = true;
-			}));
-			
-			if (hasEqualInResultArray) continue;
-			
-			result.push(linkWithIdentity);
+			result.push({
+				url: linkElement.href,
+				identity: linkIdentity
+			});
 		}
 		
 		return result;
