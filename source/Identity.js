@@ -1,4 +1,5 @@
 import Brick from './Brick';
+import {arrayFromNodeList} from './utilities';
 
 export default class Identity extends Brick {
 	constructor(selector, type, value) {
@@ -106,17 +107,5 @@ IdentityDomain.domains = {
 	link: new IdentityDomain('a', ((a, b) => a.href === b.href)),
 	image: new IdentityDomain('img', ((a, b) => a.src === b.src))
 };
-
-function arrayFromNodeList(nodeList) {
-	// Circumvent jsdom performance issue with getting the length of a node list
-	let result = [],
-		currentIndex = 0;
-	
-	do {
-		result.push(nodeList[currentIndex]);
-	} while(nodeList[++currentIndex]);
-	
-	return result;
-}
 
 export let identityDomains = IdentityDomain.domains;

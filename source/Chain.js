@@ -1,6 +1,7 @@
 import Brick from './Brick';
 import Page from './Page';
 import {identityDomains} from './Identity';
+import {domainForUrl} from './utilities';
 
 export default class Chain extends Brick {
 	constructor(page, forwardIdentity, backwardIdentity) {
@@ -35,8 +36,3 @@ export default class Chain extends Brick {
 		return chains;
 	}
 }
-
-function domainForUrl(url) {
-	let results = /\/\/([^\/]+)/.exec(url);
-	return results && results[1];
-};
