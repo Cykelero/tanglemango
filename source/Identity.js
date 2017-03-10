@@ -1,5 +1,5 @@
 import Brick from './Brick';
-import {arrayFromNodeList} from './utilities';
+import {arrayFromNodeList} from './Utilities';
 
 export default class Identity extends Brick {
 	constructor(selector, type, value) {

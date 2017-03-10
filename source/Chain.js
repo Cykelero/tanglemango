@@ -1,7 +1,7 @@
 import Brick from './Brick';
 import Page from './Page';
 import {identityDomains} from './Identity';
-import {domainForUrl} from './utilities';
+import {domainForUrl} from './Utilities';
 
 export default class Chain extends Brick {
 	constructor(page, forwardIdentity, backwardIdentity) {

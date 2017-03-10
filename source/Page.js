@@ -1,6 +1,6 @@
 import Brick from './Brick';
 import Identity from './Identity';
-import {getDomFromURL} from './utilities';
+import {getDomFromURL} from './Utilities';
 
 export default class Page extends Brick {
 	constructor(url) {
