@@ -1,29 +1,18 @@
 import Brick from './Brick';
 import Identity from './Identity';
-
-import jsdom from 'jsdom';	
+import {getDomFromURL} from './utilities';
 
 export default class Page extends Brick {
 	constructor(url) {
 		super();
 		
 		this.url = this.constructor.toCanonicalUrl(url);
-		this.dom = null;
-		
-		// Initialize
-		this.dom = new Promise((resolve, reject) => {
-			jsdom.env({
-				url: this.url,
-				done: function(error, window) {
-					if (error) {
-						console.warn(`Error when retrieving \`${this.url}\`:`, error);
-						reject(error);
-					} else {
-						resolve(window.document);
-					}
-				}
-			})
-		});
+		this._dom = null;
+	}
+	
+	get dom() {
+		if (this._dom) return this._dom;
+		return getDomFromURL(this.url);
 	}
 	
 	async getElementsWithIdentities(domain) {
@@ -36,4 +25,3 @@ export default class Page extends Brick {
 		return /^[^#]*/.exec(url)[0];
 	}
 }
-
