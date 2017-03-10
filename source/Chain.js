@@ -28,7 +28,14 @@ export default class Chain extends Brick {
 			secondPageLinks.forEach(backwardLink => {
 				if (backwardLink.element.href === startPage.url) {
 					// We have found a forward-backward identity pair
-					chains.push(new Chain(startPage, forwardLink.identity, backwardLink.identity));
+					let newChain = new Chain(startPage, forwardLink.identity, backwardLink.identity);
+					
+					let existingOppositeChain = chains.find(existingChain => (
+						existingChain.forwardIdentity.equals(newChain.backwardIdentity)
+						&& existingChain.backwardIdentity.equals(newChain.forwardIdentity)
+					));
+					
+					if (!existingOppositeChain) chains.push(newChain);
 				}
 			});
 		}));
