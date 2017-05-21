@@ -8,7 +8,13 @@ async function main() {
 	let page = new Page(testUrl),
 		chains = await Chain.getChainsForPage(page);
 	
-	console.log(chains);
+	chains.forEach(async function(chain) {
+		let secondPage = await chain.getItemAt(1);
+		let thirdPage = await chain.getItemAt(2);
+		console.log('###', chain);
+		console.log(secondPage);
+		console.log(thirdPage);
+	});
 }
 
 main();

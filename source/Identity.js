@@ -31,6 +31,10 @@ export default class Identity extends Brick {
 		return candidates.filter(candidate => this.matches(candidate));
 	}
 	
+	getFirstMatchIn(container) {
+		return this.getMatchesIn(container)[0];
+	}
+	
 	static getFor(element, domain, context = element.ownerDocument) {
 		let peers = context.querySelectorAll(domain.selector);
 		peers = arrayFromNodeList(peers);
