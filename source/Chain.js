@@ -28,9 +28,7 @@ export default class Chain extends Brick {
 			}
 		};
 		
-		if (this.pages.hasOwnProperty(index)) {
-			return this.pages[index];
-		} else {
+		if (!this.pages.hasOwnProperty(index)) {
 			// Get link element to requested page
 			let previousPageIndex = index + (isPositivePage ? -1 : 1),
 				previousPage = await this.getItemAt(previousPageIndex),
@@ -38,7 +36,7 @@ export default class Chain extends Brick {
 				linkElement = linkIdentity.getFirstMatchIn(await previousPage.dom);
 			
 			if (linkElement) {
-				// Get url and prevent end loops
+				// Get requested page url
 				let requestedPageUrl = linkElement.getAttribute('href'),
 					requestedPage = new Page(requestedPageUrl);
 				
@@ -47,13 +45,13 @@ export default class Chain extends Brick {
 					return Promise.resolve(requestedPage);	
 				} else {
 					didDiscoverExtremity();
-					return Promise.resolve(null);
 				}
 			} else {
 				didDiscoverExtremity();
-				return Promise.resolve(null);
 			}
 		}
+
+		return this.pages[index] || null;
 	}
 	
 	get maxDiscoveredId() {
