@@ -14,6 +14,9 @@ async function main() {
 		console.log('###', chain);
 		console.log(secondPage);
 		console.log(thirdPage);
+		
+		window.a = window.a || [];
+		window.a.push(chain);
 	});
 }
 

@@ -11,11 +11,22 @@ export default class Chain extends Brick {
 		this.forwardIdentity = forwardIdentity;
 		this.backwardIdentity = backwardIdentity;
 		
+		this.hasDiscoveredStart = false;
+		this.hasDiscoveredEnd = false;
+		
 		this.pages[0] = Promise.resolve(page);
 	}
 	
 	async getItemAt(index) {
 		let isPositivePage = (index > 0);
+		
+		let didDiscoverExtremity = () => {
+			if (isPositivePage) {
+				this.hasDiscoveredEnd = true;
+			} else {
+				this.hasDiscoveredStart = true;
+			}
+		};
 		
 		if (this.pages.hasOwnProperty(index)) {
 			return this.pages[index];
@@ -35,10 +46,12 @@ export default class Chain extends Brick {
 					this.pages[index] = requestedPage;
 					return Promise.resolve(requestedPage);	
 				} else {
-					Promise.reject(`End loop after page ${previousPageIndex}`);
+					didDiscoverExtremity();
+					return Promise.resolve(null);
 				}
 			} else {
-				return Promise.reject(`No ${isPositivePage ? 'forward' : 'backward'} link on page ${previousPageIndex}`);
+				didDiscoverExtremity();
+				return Promise.resolve(null);
 			}
 		}
 	}
@@ -57,6 +70,10 @@ export default class Chain extends Brick {
 	
 	get discoveredLength() {
 		return this.maxDiscoveredId - this.minDiscoveredId;
+	}
+	
+	get hasDiscoveredAll() {
+		return this.hasDiscoveredStart && this.hasDiscoveredEnd;
 	}
 	
 	static async getChainsForPage(startPage) {
