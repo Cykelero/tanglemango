@@ -20,20 +20,25 @@ export default class Chain extends Brick {
 		if (this.pages.hasOwnProperty(index)) {
 			return this.pages[index];
 		} else {
+			// Get link element to requested page
 			let previousPageIndex = index + (isPositivePage ? -1 : 1),
 				previousPage = await this.getItemAt(previousPageIndex),
 				linkIdentity = (isPositivePage ? this.forwardIdentity : this.backwardIdentity),
 				linkElement = linkIdentity.getFirstMatchIn(await previousPage.dom);
 			
-			if (!linkElement) {
-				return Promise.reject(`No ${isPositivePage ? 'forward' : 'backward'} link on page ${previousPageIndex}`);
-			} else {
+			if (linkElement) {
+				// Get url and prevent end loops
 				let requestedPageUrl = linkElement.getAttribute('href'),
 					requestedPage = new Page(requestedPageUrl);
 				
-				this.pages[index] = requestedPage;
-				
-				return Promise.resolve(requestedPage);
+				if (requestedPage.url != previousPage.url) {
+					this.pages[index] = requestedPage;
+					return Promise.resolve(requestedPage);	
+				} else {
+					Promise.reject(`End loop after page ${previousPageIndex}`);
+				}
+			} else {
+				return Promise.reject(`No ${isPositivePage ? 'forward' : 'backward'} link on page ${previousPageIndex}`);
 			}
 		}
 	}
