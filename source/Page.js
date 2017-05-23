@@ -6,7 +6,7 @@ export default class Page extends Brick {
 	constructor(url) {
 		super();
 		
-		this.url = this.constructor.toCanonicalUrl(url);
+		this.url = this.constructor.toCanonicalURL(url);
 		this._dom = null;
 	}
 	
@@ -21,7 +21,7 @@ export default class Page extends Brick {
 	}
 	
 	// Static
-	static toCanonicalUrl(url) {
+	static toCanonicalURL(url) {
 		return /^[^#]*/.exec(url)[0];
 	}
 }

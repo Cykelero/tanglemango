@@ -1,7 +1,7 @@
 import jsdom from 'jsdom';
 
 
-export function domainForUrl(url) {
+export function domainForURL(url) {
 	let results = /\/\/([^\/]+)/.exec(url);
 	return results && results[1];
 };

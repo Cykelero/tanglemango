@@ -1,7 +1,7 @@
 import Brick from './Brick';
 import Page from './Page';
 import {identityDomains} from './Identity';
-import {domainForUrl} from './Utilities';
+import {domainForURL} from './Utilities';
 
 export default class Chain extends Brick {
 	constructor(page, forwardIdentity, backwardIdentity) {
@@ -75,7 +75,7 @@ export default class Chain extends Brick {
 	
 		let startPageLinks = (await startPage.getElementsWithIdentities(identityDomains.link))
 			.filter(link => {
-				return domainForUrl(link.element.href) === domainForUrl(startPage.url);
+				return domainForURL(link.element.href) === domainForURL(startPage.url);
 			});
 	
 		// Test each forward link
