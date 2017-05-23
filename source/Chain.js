@@ -28,6 +28,27 @@ export default class Chain extends Brick {
 		return this.pages[index] || null;
 	}
 	
+	async exploreToLength(targetLength) {
+		while (this.discoveredLength < targetLength) {
+			if (await this.hasDiscoveredAll) {
+				return false;
+			}
+			
+			let exploreForward;
+			if (await this.hasDiscoveredStart) {
+				exploreForward = true;
+			} else if (await this.hasDiscoveredEnd) {
+				exploreForward = false;
+			} else {
+				exploreForward = !(this.discoveredLength % 2);
+			}
+			
+			await this.getItemAt(exploreForward ? this.maxDiscoveredId + 1 : this.minDiscoveredId - 1);
+		}
+		
+		return true;
+	}
+	
 	get maxDiscoveredId() {
 		let result = 1;
 		while (this.pages.hasOwnProperty(result)) result++;
