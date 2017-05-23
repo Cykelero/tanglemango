@@ -11,43 +11,17 @@ export default class Chain extends Brick {
 		this.forwardIdentity = forwardIdentity;
 		this.backwardIdentity = backwardIdentity;
 		
-		this.hasDiscoveredStart = false;
-		this.hasDiscoveredEnd = false;
-		
-		this.pages[0] = Promise.resolve(page);
+		this.pages[0] = page;
 	}
 	
 	async getItemAt(index) {
-		let isPositivePage = (index > 0);
-		
-		let didDiscoverExtremity = () => {
-			if (isPositivePage) {
-				this.hasDiscoveredEnd = true;
-			} else {
-				this.hasDiscoveredStart = true;
-			}
-		};
-		
 		if (!this.pages.hasOwnProperty(index)) {
-			// Get link element to requested page
-			let previousPageIndex = index + (isPositivePage ? -1 : 1),
-				previousPage = await this.getItemAt(previousPageIndex),
-				linkIdentity = (isPositivePage ? this.forwardIdentity : this.backwardIdentity),
-				linkElement = linkIdentity.getFirstMatchIn(await previousPage.dom);
+			let isPositivePage = (index > 0),
+				previousPageIndex = index + (isPositivePage ? -1 : 1),
+				requestedPageURL = await this._getLinkURL(previousPageIndex, isPositivePage);
 			
-			if (linkElement) {
-				// Get requested page url
-				let requestedPageUrl = linkElement.getAttribute('href'),
-					requestedPage = new Page(requestedPageUrl);
-				
-				if (requestedPage.url != previousPage.url) {
-					this.pages[index] = requestedPage;
-					return Promise.resolve(requestedPage);	
-				} else {
-					didDiscoverExtremity();
-				}
-			} else {
-				didDiscoverExtremity();
+			if (requestedPageURL) {
+				this.pages[index] = new Page(requestedPageURL);
 			}
 		}
 
@@ -70,8 +44,30 @@ export default class Chain extends Brick {
 		return this.maxDiscoveredId - this.minDiscoveredId;
 	}
 	
+	get hasDiscoveredStart() {
+		return this._getLinkURL(this.minDiscoveredId, false).then(link => !link);
+	}
+	
+	get hasDiscoveredEnd() {
+		return this._getLinkURL(this.maxDiscoveredId, true).then(link => !link);
+	}
+	
 	get hasDiscoveredAll() {
-		return this.hasDiscoveredStart && this.hasDiscoveredEnd;
+		return Promise.all([this.hasDiscoveredStart, this.hasDiscoveredEnd])
+			.then(results => results[0] && results[1]);
+	}
+	
+	async _getLinkURL(index, forward) {
+		let sourcePage = await this.getItemAt(index),
+			linkIdentity = (forward ? this.forwardIdentity : this.backwardIdentity),
+			linkElement = linkIdentity.getFirstMatchIn(await sourcePage.dom),
+			linkURL = linkElement && linkElement.getAttribute('href');
+		
+		if (linkURL && new Page(linkURL).url != sourcePage.url) {
+			return linkURL;
+		}
+		
+		return null;
 	}
 	
 	static async getChainsForPage(startPage) {
