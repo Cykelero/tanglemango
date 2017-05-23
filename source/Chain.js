@@ -41,7 +41,7 @@ export default class Chain extends Brick {
 	}
 	
 	get discoveredLength() {
-		return this.maxDiscoveredId - this.minDiscoveredId;
+		return this.maxDiscoveredId - this.minDiscoveredId + 1;
 	}
 	
 	get hasDiscoveredStart() {
