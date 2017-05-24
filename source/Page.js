@@ -7,12 +7,13 @@ export default class Page extends Brick {
 		super();
 		
 		this.url = this.constructor.toCanonicalURL(url);
-		this._dom = null;
 	}
 	
 	get dom() {
-		if (this._dom) return this._dom;
-		return getDomFromURL(this.url);
+		if (!sharedDomCache[this.url]) {
+			sharedDomCache[this.url] = getDomFromURL(this.url);
+		}
+		return sharedDomCache[this.url];
 	}
 	
 	async getElementsWithIdentities(domain) {
@@ -25,3 +26,5 @@ export default class Page extends Brick {
 		return /^[^#]*/.exec(url)[0];
 	}
 }
+
+let sharedDomCache = {};
