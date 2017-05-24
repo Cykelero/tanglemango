@@ -1,5 +1,8 @@
 import jsdom from 'jsdom';
 
+export function asyncForEach(array, callback) {
+	return Promise.all(array.map(callback));
+};
 
 export function domainForURL(url) {
 	let results = /\/\/([^\/]+)/.exec(url);

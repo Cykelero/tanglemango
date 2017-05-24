@@ -1,7 +1,7 @@
 import Brick from './Brick';
 import Page from './Page';
 import {identityDomains} from './Identity';
-import {domainForURL} from './Utilities';
+import {domainForURL, asyncForEach} from './Utilities';
 
 export default class Chain extends Brick {
 	constructor(page, forwardIdentity, backwardIdentity) {
@@ -15,10 +15,10 @@ export default class Chain extends Brick {
 	}
 	
 	async getItemAt(index) {
-		if (!this.pages.hasOwnProperty(index)) {
+		if (!this.pages[index]) {
 			let isPositivePage = (index > 0),
 				previousPageIndex = index + (isPositivePage ? -1 : 1),
-				requestedPageURL = await this._getLinkURL(previousPageIndex, isPositivePage);
+				requestedPageURL = await this._getPageLinkURL(previousPageIndex, isPositivePage);
 			
 			if (requestedPageURL) {
 				this.pages[index] = new Page(requestedPageURL);
@@ -66,11 +66,11 @@ export default class Chain extends Brick {
 	}
 	
 	get hasDiscoveredStart() {
-		return this._getLinkURL(this.minDiscoveredId, false).then(link => !link);
+		return this._getPageLinkURL(this.minDiscoveredId, false).then(link => !link);
 	}
 	
 	get hasDiscoveredEnd() {
-		return this._getLinkURL(this.maxDiscoveredId, true).then(link => !link);
+		return this._getPageLinkURL(this.maxDiscoveredId, true).then(link => !link);
 	}
 	
 	get hasDiscoveredAll() {
@@ -78,17 +78,28 @@ export default class Chain extends Brick {
 			.then(results => results[0] && results[1]);
 	}
 	
-	async _getLinkURL(index, forward) {
+	async _getPageLinks(index, forward) {
 		let sourcePage = await this.getItemAt(index),
-			linkIdentity = (forward ? this.forwardIdentity : this.backwardIdentity),
-			linkElement = linkIdentity.getFirstMatchIn(await sourcePage.dom),
-			linkURL = linkElement && linkElement.getAttribute('href');
+			linkIdentity = (forward ? this.forwardIdentity : this.backwardIdentity);
 		
-		if (linkURL && new Page(linkURL).url != sourcePage.url) {
-			return linkURL;
+		if (sourcePage) {
+			let pageLinks = linkIdentity.getMatchesIn(await sourcePage.dom),
+				linkURL = pageLinks.length && pageLinks[0].getAttribute('href');
+			
+			if (linkURL && new Page(linkURL).url != sourcePage.url) {
+				return pageLinks;
+			}
 		}
+
+		return [];
+	}
+	
+	async _getPageLinkURL(index, forward) {
+		let sourcePage = await this.getItemAt(index),
+			pageLinks = await this._getPageLinks(index, forward),
+			linkURL = pageLinks.length && pageLinks[0].getAttribute('href');
 		
-		return null;
+		return linkURL || null;
 	}
 	
 	static async getChainsForPage(startPage) {
@@ -99,8 +110,8 @@ export default class Chain extends Brick {
 				return domainForURL(link.element.href) === domainForURL(startPage.url);
 			});
 	
-		// Test each forward link
-		await Promise.all(startPageLinks.map(async function(forwardLink) {
+		// Explore each forward link
+		await asyncForEach(startPageLinks, async (forwardLink) => {
 			let secondPage = new Page(forwardLink.element.href),
 				secondPageLinks = await secondPage.getElementsWithIdentities(identityDomains.link);
 			
@@ -117,8 +128,44 @@ export default class Chain extends Brick {
 					if (!existingOppositeChain) chains.push(newChain);
 				}
 			});
-		}));
+		});
 		
-		return chains;
+		// Correct orientation of chains
+		let orientedChains = [];
+		
+		await asyncForEach(chains, async (chain) => {
+			let flipChain = false;
+			
+			// Find backward/forward links in a single page
+			let backwardLinks, forwardLinks;
+
+			backwardLinks = await chain._getPageLinks(0, false);
+			forwardLinks = await chain._getPageLinks(0, true);
+			
+			if (!backwardLinks.length || !forwardLinks.length) {
+				backwardLinks = await chain._getPageLinks(1, false);
+				forwardLinks = await chain._getPageLinks(1, true);
+			}
+			
+			if (backwardLinks.length && forwardLinks.length) {
+				// Compare link positions
+				let Node_DOCUMENT_POSITION_PRECEDING = 2,
+					nodeOrder = backwardLinks[0].compareDocumentPosition(forwardLinks[0]);
+				
+				if (nodeOrder & Node_DOCUMENT_POSITION_PRECEDING) {
+					flipChain = true;
+				}
+			}
+			
+			// Orient chain
+			if (flipChain) {
+				let startPage = await chain.getItemAt(0);
+				orientedChains.push(new Chain(startPage, chain.backwardIdentity, chain.forwardIdentity));
+			} else {
+				orientedChains.push(chain);
+			}
+		});
+		
+		return orientedChains;
 	}
 }
