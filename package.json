@@ -1,7 +1,7 @@
 {
   "name": "tanglemango",
   "version": "1.0.0",
-  "description": "Allows getting data from arbitrary websites based on link structure",
+  "description": "Get data from arbitrary websites based on link structure",
   "main": "main.js",
   "author": "Nathan Manceaux-Panot",
   "license": "MIT",
