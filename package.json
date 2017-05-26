@@ -2,12 +2,23 @@
   "name": "tanglemango",
   "version": "1.0.0",
   "description": "Get data from arbitrary websites based on link structure",
-  "main": "main.js",
+  "repository": "https://github.com/cykelero/tanglemango.git",
+  "main": "build/index.js",
   "author": "Nathan Manceaux-Panot",
   "license": "MIT",
+  "scripts": {
+	  "build": "rm -rf build/ && babel source --presets babel-preset-node6 -d build",
+	  "sandbox": "node build/sandbox.js",
+	  "build-browser-sandbox": "npm run build && browserify build/sandbox.js -o build/browser-sandbox.js",
+	  "build-browser-sandbox-and-confirm": "npm run build-browser-sandbox && echo '✔ Browser test build ready.'",
+	  "watch-browser-sandbox": "npm run build-browser-sandbox-and-confirm; fswatch -o source/ | xargs -n1 -I{} npm run build-browser-sandbox-and-confirm",
+	  "prepublish": "npm run build"
+  },
   "dependencies": {
-    "babel-cli": "^6.23.0",
-    "babel-preset-node6": "^11.0.0",
     "jsdom": "^9.11.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-preset-node6": "^11.0.0"
   }
 }
