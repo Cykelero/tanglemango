@@ -1,4 +1,4 @@
-import TangleMango from './index';
+import * as TangleMango from './index';
 
 async function main() {
 	//let testURL = 'http://buttersafe.com/2007/04/03/breakfast-sad-turtle/';
