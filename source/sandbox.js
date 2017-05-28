@@ -6,7 +6,7 @@ async function main() {
 	//let testURL = 'http://www.nerfnow.com/comic/6';
 	
 	let page = new TangleMango.Page(testURL),
-		chains = await TangleMango.Chain.getChainsForPage(page);
+		chains = await TangleMango.PageChain.getChainsForPage(page);
 	
 	chains.forEach(async function(chain) {
 		let secondPage = await chain.getItemAt(1);
