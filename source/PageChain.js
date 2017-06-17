@@ -37,7 +37,7 @@ export default class PageChain extends CachedChain {
 		
 		if (sourcePage) {
 			let pageLinks = linkIdentity.getMatchesIn(await sourcePage.dom),
-				linkURL = pageLinks.length && pageLinks[0].getAttribute('href');
+				linkURL = pageLinks.length && pageLinks[0].href;
 			
 			if (linkURL && new Page(linkURL).url != sourcePage.url) {
 				return pageLinks;
@@ -50,7 +50,7 @@ export default class PageChain extends CachedChain {
 	async _getPageLinkURL(index, forward) {
 		let sourcePage = await this.getItemAt(index),
 			pageLinks = await this._getPageLinks(index, forward),
-			linkURL = pageLinks.length && pageLinks[0].getAttribute('href');
+			linkURL = pageLinks.length && pageLinks[0].href;
 		
 		return linkURL || null;
 	}
