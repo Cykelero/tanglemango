@@ -28,6 +28,12 @@ export async function getDomFromURL(url) {
 			html = await response.text(),
 			dom = new DOMParser().parseFromString(html, 'text/html');
 		
+		if (!dom.querySelector('base')) {
+			let baseElement = dom.createElement('base');
+			baseElement.href = url;
+			dom.head.appendChild(baseElement);
+		}
+		
 		return dom;
 	} else {
 		// In Node
