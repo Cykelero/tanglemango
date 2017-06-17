@@ -1,6 +1,6 @@
 import jsdom from 'jsdom';
 
-export function asyncForEach(array, callback) {
+export function parallelForEach(array, callback) {
 	return Promise.all(array.map(callback));
 };
 

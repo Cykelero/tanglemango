@@ -1,7 +1,7 @@
 import CachedChain from './CachedChain';
 import Page from './Page';
 import {identityDomains} from './Identity';
-import {domainForURL, asyncForEach} from './Utilities';
+import {domainForURL, parallelForEach} from './Utilities';
 
 export default class PageChain extends CachedChain {
 	constructor(originPage, forwardIdentity, backwardIdentity) {
@@ -64,7 +64,7 @@ export default class PageChain extends CachedChain {
 			});
 	
 		// Explore each forward link
-		await asyncForEach(startPageLinks, async (forwardLink) => {
+		await parallelForEach(startPageLinks, async (forwardLink) => {
 			let secondPage = new Page(forwardLink.element.href),
 				secondPageLinks = await secondPage.getElementsWithIdentities(identityDomains.link);
 			
@@ -86,7 +86,7 @@ export default class PageChain extends CachedChain {
 		// Correct orientation of chains
 		let orientedChains = [];
 		
-		await asyncForEach(chains, async (chain) => {
+		await parallelForEach(chains, async (chain) => {
 			let flipChain = false;
 			
 			// Find backward/forward links in a single page
