@@ -14,26 +14,41 @@ export default class PageChain extends CachedChain {
 	}
 	
 	async _getItemAt(index) {
+		if (index === 0) return this.cachedItems[0];
+		
 		let isPositivePage = (index > 0),
 			previousPageIndex = index + (isPositivePage ? -1 : 1),
-			requestedPageURL = await this._getPageLinkURL(previousPageIndex, isPositivePage);
+			requestedPageURL = await this._getLinkURLAt(previousPageIndex, isPositivePage);
 		
 		if (requestedPageURL) {
-			return new Page(requestedPageURL);
+			let page = new Page(requestedPageURL);
+			if (await this._validatePage(page, index)) return page;
+		}
+	}
+	
+	async _hasDiscoveredExtremity(edgeIndex, forward) {
+		let nextPageURL = await this._getLinkURLAt(edgeIndex, forward);
+		
+		if (!nextPageURL) {
+			return true;
+		} else {
+			let nextPage = new Page(nextPageURL),
+				nextPageIndex = edgeIndex + (forward ? 1 : -1);
+			
+			return !(await this._validatePage(nextPage, nextPageIndex));
 		}
 	}
 	
 	get hasDiscoveredStart() {
-		return this._getPageLinkURL(this.minDiscoveredId, false).then(link => !link);
+		return this._hasDiscoveredExtremity(this.minDiscoveredId, false);
 	}
 	
 	get hasDiscoveredEnd() {
-		return this._getPageLinkURL(this.maxDiscoveredId, true).then(link => !link);
+		return this._hasDiscoveredExtremity(this.maxDiscoveredId, true);
 	}
 	
-	async _getPageLinks(index, forward) {
-		let sourcePage = await this.getItemAt(index),
-			linkIdentity = (forward ? this.forwardIdentity : this.backwardIdentity);
+	async _getLinksFromPage(sourcePage, forward) {
+		let linkIdentity = (forward ? this.forwardIdentity : this.backwardIdentity);
 		
 		if (sourcePage) {
 			let pageLinks = linkIdentity.getMatchesIn(await sourcePage.dom),
@@ -47,12 +62,32 @@ export default class PageChain extends CachedChain {
 		return [];
 	}
 	
-	async _getPageLinkURL(index, forward) {
-		let sourcePage = await this.getItemAt(index),
-			pageLinks = await this._getPageLinks(index, forward),
+	async _getLinksAt(index, forward) {
+		let sourcePage = await this.getItemAt(index);
+		
+		return this._getLinksFromPage(sourcePage, forward);
+	}
+	
+	async _getLinkURLAt(index, forward) {
+		let pageLinks = await this._getLinksAt(index, forward),
 			linkURL = pageLinks.length && pageLinks[0].href;
 		
 		return linkURL || null;
+	}
+	
+	async _validatePage(page, index) {
+		let isPositivePage = (index > 0),
+			checkForward = !isPositivePage;
+		
+		let previousPageIndex = index + (checkForward ? 1 : -1),
+			previousPage = await this.getItemAt(previousPageIndex);
+		
+		let previousLinks = await this._getLinksFromPage(page, checkForward),
+			previousURL = previousLinks.length && previousLinks[0].href;
+			
+		if (!previousURL) return false;
+		
+		return new Page(previousURL).url === previousPage.url;
 	}
 	
 	static async getChainsForPage(startPage) {
@@ -92,12 +127,12 @@ export default class PageChain extends CachedChain {
 			// Find backward/forward links in a single page
 			let backwardLinks, forwardLinks;
 
-			backwardLinks = await chain._getPageLinks(0, false);
-			forwardLinks = await chain._getPageLinks(0, true);
+			backwardLinks = await chain._getLinksAt(0, false);
+			forwardLinks = await chain._getLinksAt(0, true);
 			
 			if (!backwardLinks.length || !forwardLinks.length) {
-				backwardLinks = await chain._getPageLinks(1, false);
-				forwardLinks = await chain._getPageLinks(1, true);
+				backwardLinks = await chain._getLinksAt(1, false);
+				forwardLinks = await chain._getLinksAt(1, true);
 			}
 			
 			if (backwardLinks.length && forwardLinks.length) {

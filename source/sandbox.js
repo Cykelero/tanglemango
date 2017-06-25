@@ -9,7 +9,7 @@ async function main() {
 	let page = new TangleMango.Page(testURL),
 		chains = await TangleMango.PageChain.getChainsForPage(page);
 	
-	chains.forEach(async function(chain) {
+	await TangleMango.utilities.parallelForEach(chains, async function(chain) {
 		let pageTwo = await chain.getItemAt(2);
 		
 		if (chain.discoveredLength < 3) return;
@@ -22,6 +22,8 @@ async function main() {
 			window.foundChains.push(chain);
 		}
 	});
+	
+	console.log('Done.');
 }
 
 main();
