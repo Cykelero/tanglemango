@@ -14,9 +14,10 @@ export function arrayFromNodeList(nodeList) {
 	let result = [],
 		currentIndex = 0;
 	
-	do {
+	while(nodeList[currentIndex]) {
 		result.push(nodeList[currentIndex]);
-	} while(nodeList[++currentIndex]);
+		currentIndex++;
+	}
 	
 	return result;
 };
