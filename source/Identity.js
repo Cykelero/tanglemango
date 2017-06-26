@@ -97,7 +97,13 @@ IdentityType.types = [
 	new IdentityType('alt', e => e.getAttribute('alt')),
 	new IdentityType('title', e => e.getAttribute('title')),
 	new IdentityType('classname', e => e.getAttribute('class')),
-	new IdentityType('text', e => e.textContent)
+	new IdentityType('text', e => e.textContent),
+	new IdentityType('childImageSrc', e => {
+		let firstImageChild = e.querySelector('img'),
+			imageSrc = firstImageChild && firstImageChild.src;
+		
+		return imageSrc;
+	})
 ];
 
 class IdentityDomain {
