@@ -22,28 +22,28 @@ export default class Chain extends Brick {
 				exploreForward = !(this.discoveredLength % 2);
 			}
 			
-			await this.getItemAt(exploreForward ? this.maxDiscoveredId + 1 : this.minDiscoveredId - 1);
+			await this.getItemAt(exploreForward ? this.maxDiscoveredIndex + 1 : this.minDiscoveredIndex - 1);
 		}
 		
 		return true;
 	}
 	
-	//hasDiscoveredId(id) {}
+	//hasDiscoveredIndex(index) {}
 	
-	get maxDiscoveredId() {
+	get maxDiscoveredIndex() {
 		let result = 1;
-		while (this.hasDiscoveredId(result)) result++;
+		while (this.hasDiscoveredIndex(result)) result++;
 		return result - 1;
 	}
 	
-	get minDiscoveredId() {
+	get minDiscoveredIndex() {
 		let result = -1;
-		while (this.hasDiscoveredId(result)) result--;
+		while (this.hasDiscoveredIndex(result)) result--;
 		return result + 1;
 	}
 	
 	get discoveredLength() {
-		return this.maxDiscoveredId - this.minDiscoveredId + 1;
+		return this.maxDiscoveredIndex - this.minDiscoveredIndex + 1;
 	}
 	
 	//get hasDiscoveredStart() {}

@@ -40,11 +40,11 @@ export default class PageChain extends CachedChain {
 	}
 	
 	get hasDiscoveredStart() {
-		return this._hasDiscoveredExtremity(this.minDiscoveredId, false);
+		return this._hasDiscoveredExtremity(this.minDiscoveredIndex, false);
 	}
 	
 	get hasDiscoveredEnd() {
-		return this._hasDiscoveredExtremity(this.maxDiscoveredId, true);
+		return this._hasDiscoveredExtremity(this.maxDiscoveredIndex, true);
 	}
 	
 	async _getLinksFromPage(sourcePage, forward) {

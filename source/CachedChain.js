@@ -8,7 +8,7 @@ export default class CachedChain extends Chain {
 	}
 	
 	async getItemAt(index) {
-		if (!this.hasDiscoveredId(index)) {
+		if (!this.hasDiscoveredIndex(index)) {
 			this.cachedItems[index] = await this._getItemAt(index);
 		}
 
@@ -17,7 +17,7 @@ export default class CachedChain extends Chain {
 	
 	//async _getItemAt(index) {}
 	
-	hasDiscoveredId(index) {
+	hasDiscoveredIndex(index) {
 		return !!this.cachedItems[index];
 	}
 	
