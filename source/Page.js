@@ -1,6 +1,6 @@
 import Brick from './Brick';
 import Identity from './Identity';
-import {getDomFromURL} from './Utilities';
+import {getDomForURL} from './Utilities';
 
 export default class Page extends Brick {
 	constructor(url) {
@@ -11,7 +11,7 @@ export default class Page extends Brick {
 	
 	get dom() {
 		if (!sharedDomCache[this.url]) {
-			sharedDomCache[this.url] = getDomFromURL(this.url);
+			sharedDomCache[this.url] = getDomForURL(this.url);
 		}
 		return sharedDomCache[this.url];
 	}

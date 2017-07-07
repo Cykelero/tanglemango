@@ -15,7 +15,8 @@
 	  "prepublish": "npm run build"
   },
   "dependencies": {
-    "jsdom": "^9.11.0"
+    "jsdom": "^11.1.0",
+    "node-fetch": "^1.7.1"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",

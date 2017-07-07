@@ -1,3 +1,5 @@
+export {proxy as config} from './Config';
+
 export {default as Brick}  from './Brick';
 
 export {default as Page}  from './Page';

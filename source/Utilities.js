@@ -1,4 +1,5 @@
-import jsdom from 'jsdom';
+import { JSDOM } from 'jsdom';
+import { values as ConfigValues } from './Config';
 
 export function parallelForEach(array, callback) {
 	return Promise.all(array.map(callback));
@@ -22,12 +23,16 @@ export function arrayFromNodeList(nodeList) {
 	return result;
 };
 
-export async function getDomFromURL(url) {
+export async function getTextForURL(url) {
+	return ConfigValues.textForURLProvider(url);
+}
+
+export async function getDomForURL(url) {
+	let text = await getTextForURL(url);
+	
 	if (typeof DOMParser !== 'undefined') {
 		// In browser
-		let response = await fetch(url),
-			html = await response.text(),
-			dom = new DOMParser().parseFromString(html, 'text/html');
+		let dom = new DOMParser().parseFromString(text, 'text/html');
 		
 		if (!dom.querySelector('base')) {
 			let baseElement = dom.createElement('base');
@@ -38,18 +43,7 @@ export async function getDomFromURL(url) {
 		return dom;
 	} else {
 		// In Node
-		return new Promise((resolve, reject) => {
-			jsdom.env({
-				url: url,
-				done: function(error, window) {
-					if (error) {
-						console.warn(`Error when retrieving \`${this.url}\`:`, error);
-						reject(error);
-					} else {
-						resolve(window.document);
-					}
-				}
-			});
-		});
+		let parsed = new JSDOM(text, {url: url});
+		return parsed.window.document;
 	};
 };
